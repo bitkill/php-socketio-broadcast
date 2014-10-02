@@ -4,6 +4,8 @@
  * develope by psinetron (slybeaver)
  * Git: https://github.com/psinetron
  * web-site: http://slybeaver.ru
+ * 
+ * Changes by: Rui Fernandes < bitkill @ github >
  *
  */
 class SocketIO
