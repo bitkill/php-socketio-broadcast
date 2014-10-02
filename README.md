@@ -1,4 +1,4 @@
-PHP_SocketIO_Client
+php-socketio-broadcast
 ===================
 simple class to send messages from PHP to socket.io
 
