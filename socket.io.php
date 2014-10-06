@@ -44,7 +44,8 @@ class SocketIO
         if (preg_match('#Sec-WebSocket-Accept#',$result)){
         
         fwrite($fd, $this->hybi10Encode('42["message", "' . addslashes($message) . '"]'));
-         fread($fd,1000000);
+        // changed from 1000000 to 10, same result, better times!
+        fread($fd,10);
         return true;
         
         } else {return false;}
