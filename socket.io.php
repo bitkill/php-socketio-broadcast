@@ -1,12 +1,12 @@
 <?php
 /**
  * Class SocketIO
- * develope by psinetron (slybeaver)
- * Git: https://github.com/psinetron
- * web-site: http://slybeaver.ru
+ * developed by psinetron (slybeaver)
+ * Original Git: https://github.com/psinetron
+ * Original dev web-site: http://slybeaver.ru
  * 
  * Changes by: Rui Fernandes < bitkill @ github >
- *
+ * This Git: https://github.com/bitkill/php-socketio-broadcast
  */
 class SocketIO
 {
