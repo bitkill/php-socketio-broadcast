@@ -5,6 +5,7 @@ simple class to send messages from PHP to socket.io
 How to use:
 ```
 $socketio = new SocketIO();
+/** OBJ      | send | server  | port | command |     data        */
 if ($socketio->send('localhost', 9090, 'message','Hello world!')){
     echo 'we sent the message and disconnected';
 } else {
