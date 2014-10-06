@@ -4,9 +4,10 @@ simple class to send messages from PHP to socket.io
 
 How to use:
 ```
-$socketio = new SocketIO();
-/** OBJ      | send | server  | port | command |     data        */
-if ($socketio->send('localhost', 9090, 'message','Hello world!')){
+/**                     | server    | port */
+$socketio = new SocketIO('127.0.0.1', 8080);;
+/**                 | command |     data        */
+if ($socketio->send('message','Hello world!')){
     echo 'we sent the message and disconnected';
 } else {
     echo 'Sorry, we have a mistake :\'(';
@@ -14,3 +15,5 @@ if ($socketio->send('localhost', 9090, 'message','Hello world!')){
 ```
 Documentation
 https://tools.ietf.org/html/rfc6455
+
+Initially based on https://github.com/psinetron/PHP_SocketIO_Client
