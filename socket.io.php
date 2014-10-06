@@ -10,44 +10,77 @@
  */
 class SocketIO
 {
-
     /**
-     * @param null $host - $host of socket server
+     * @todo : re-use connection
+     * 
+     * @param null $host - host of socket server
      * @param null $port - port of socket server
-     * @param null $message - message to socket server
      * @param string $address - addres of socket.io on socket server
      * @param string $transport - transport type
      * @return bool
      */
 
-    public function send($host = null, $port = null, $message = null, $address = "/socket.io/websocket/", $transport = 'websocket')
-    {
-        $fd = fsockopen($host, $port, $errno, $errstr);
-        if (!$fd) {
-            return false;
-        } //Can't connect tot server
+    protected 
+        $host = null,
+        $port = null,
+        $address = null,
+        $transport = null,
+        $socket = null;
+    
+    const TIMEOUT_SOCKET = 5;
+    
+    public function __construct($host = '127.0.0.1', $port = 8080, $address = "/socket.io/?EIO=2", $transport = 'websocket') {
+        $this->host = $host;
+        $this->port = $port;
+        $this->address = $address;
+        $this->transport = $transport;
+    }
+    
+    private function connect() {
+        $errno = '';
+        $errstr = '';
+        $this->socket = stream_socket_client("tcp://{$this->host}:{$this->port}", $errno, $errstr, self::TIMEOUT_SOCKET);
+        return $this->handshake();
+    }
+    
+    private function handshake() {
         $key = $this->generateKey();
 
-        $out = "GET $address?transport=$transport HTTP/1.1\r\n";
-        $out .= "Host: http://$host:$port\r\n";
-        $out .= "Upgrade: WebSocket\r\n";
-        $out .= "Connection: Upgrade\r\n";
-        $out .= "Sec-WebSocket-Key: $key\r\n";
-        $out .= "Sec-WebSocket-Version: 13\r\n";
-        $out .= "Origin: *\r\n\r\n";
+        $out = "GET $this->address&transport=$this->transport HTTP/1.1\r\n";
+        $out.= "Host: http://$this->host:$this->port\r\n";
+        $out.= "Upgrade: WebSocket\r\n";
+        $out.= "Connection: Upgrade\r\n";
+        $out.= "Sec-WebSocket-Key: $key\r\n";
+        $out.= "Sec-WebSocket-Version: 13\r\n";
+        $out.= "Origin: *\r\n\r\n";
         
+        if (!fwrite($this->socket, $out)) { 
+           // fclose($this->socket);
+            $this->socket = null;
+            return false;
+        }
+        // 101 switching protocols, see if echoes key
+        $result= fread($this->socket,1000);
+        //var_dump($result);
         
-        
-        fwrite($fd, $out);
-        
-        $result= fread($fd,1000);
-        if (preg_match('#Sec-WebSocket-Accept#',$result)){
-        
-        fwrite($fd, $this->hybi10Encode('42["message", "' . addslashes($message) . '"]'));
-        // changed from 1000000 to 10, same result, better times!
-        fread($fd,10);
-        return true;
-        
+        preg_match('#Sec-WebSocket-Accept:\s(.*)$#mU', $result, $matches);
+        $keyAccept = trim($matches[1]);
+        $expectedResonse = base64_encode(pack('H*', sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
+        return ($keyAccept === $expectedResonse) ? true : false;
+    }
+    
+    /**
+     * @param type $action - action to execute in sockt server
+     * @param type $data - message to socket server
+     * @return boolean
+     */
+    public function send($action= "message",  $data = null)
+    {
+        if ($this->connect()) {
+            fwrite($this->socket, $this->hybi10Encode('42["' . $action . '", "' . addslashes($data) . '"]'));
+            fread($this->socket, 10);
+            fclose($this->socket);
+            return true;
         } else {return false;}
     }
 
@@ -56,11 +89,7 @@ class SocketIO
     {
         $c = 0;
         $tmp = '';
-
-        while ($c++ * 16 < $length) {
-            $tmp .= md5(mt_rand(), true);
-        }
-
+        while ($c++ * 16 < $length) { $tmp .= md5(mt_rand(), true); }
         return base64_encode(substr($tmp, 0, $length));
     }
 
@@ -121,7 +150,4 @@ class SocketIO
 
         return $frame;
     }
-
 }
-
-?>
